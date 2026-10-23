@@ -1,0 +1,30 @@
+name: astrbot_plugin_kaomoji
+display_name: 颜文字
+short_desc: 模型输出分类标记，插件从颜文字库挑一条替换；支持语义兜底与在线增删
+desc: |
+  让 bot 的回复末尾自然带上颜文字，而不是让模型自由发挥。
+
+  工作方式：插件向模型注入一条规则，模型只需在回复末尾写 `{{分类键}}`（26 类 / 172 条），
+  装饰阶段按类目随机挑一条颜文字替换标记，模型本身不用记住 172 条表情。
+
+  特性：
+  - 标记替换 + 关键词/语义兜底（模型不配合也能补）
+  - 流式输出可在结束后补发一条（`streaming_mode=followup`）
+  - 聊天内管理颜文字库：`/kaomoji cats|list|add|del|test|preview|stats|reload|rebuild`
+  - 数据存放在 `data/plugin_data/astrbot_plugin_kaomoji/`，首次运行自动初始化
+
+  命令：`/kaomoji` 查看全部子命令。
+version: 0.6.2
+author: kujochisaki3378
+repo: https://github.com/kujochisaki3378/astrbot_plugin_kaomoji
+astrbot_version: ">=4.28.0"
+support_platforms:
+  - aiocqhttp
+  - telegram
+  - lark
+  - discord
+tags:
+  - 颜文字
+  - kaomoji
+  - 聊天增强
+  - 表情
