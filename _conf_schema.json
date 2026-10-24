@@ -9,14 +9,21 @@
     "description": "【基础】运行模式",
     "type": "string",
     "default": "auto",
-    "options": ["auto", "keyword", "off"],
+    "options": [
+      "auto",
+      "keyword",
+      "off"
+    ],
     "hint": "auto=模型给标记就替换（推荐）；keyword=不看模型、只按正文关键词补；off=关闭"
   },
   "streaming_mode": {
     "description": "【流式】流式输出时的处理方式",
     "type": "string",
     "default": "followup",
-    "options": ["followup", "off"],
+    "options": [
+      "followup",
+      "off"
+    ],
     "hint": "followup=流结束后单独补一条颜文字消息；off=流式下不处理（想内联替换请关掉全局流式）"
   },
   "streaming_probability": {
@@ -59,7 +66,10 @@
     "description": "【匹配】标记替换方式",
     "type": "string",
     "default": "replace",
-    "options": ["replace", "append"],
+    "options": [
+      "replace",
+      "append"
+    ],
     "hint": "replace=标记位置直接换成颜文字（推荐）；append=删掉标记并在句末追加"
   },
   "fallback_semantic": {
@@ -109,5 +119,11 @@
     "type": "bool",
     "default": false,
     "hint": "流式下标记会被直接吐给用户，除非你确认不需要流式，否则别开"
+  },
+  "stream_no_marker_rule": {
+    "description": "【流式】反标记规则",
+    "type": "text",
+    "default": "",
+    "hint": "流式下标记会被原样发给用户。留空使用内置文案（告诉模型不要输出 {{分类键}} 标记）"
   }
 }

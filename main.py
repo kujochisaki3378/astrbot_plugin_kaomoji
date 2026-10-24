@@ -40,6 +40,13 @@ DATA_PATH = BUNDLED_DATA
 EMB_PATH = BUNDLED_EMB
 
 # 对齐 meme_manager 的写法：分类键 + &&键&& 标记 + 独占一行 + 内部资料不得泄露
+# 流式模式下标记无法拦截，只能提前禁止模型输出
+STREAM_NO_MARKER_RULE = (
+    "\n\n[颜文字]\n"
+    "回复里不要输出 {{分类键}} 这类标记，也不要自己写颜文字；"
+    "需要颜文字时插件会在回复结束后自动补一条。\n"
+)
+
 RULE_HEAD = (
     "\n\n[颜文字工具]\n"
     "此工具为回复末尾加一个颜文字，不改变既有人设、语气和对话目标。"
@@ -392,6 +399,15 @@ class KaomojiPlugin(Star):
         if not self._enabled(event):
             return
         mode = self._mode_for(event)
+        if mode == "stream":
+            # 流式时文本边生成边发，标记会原样漏给用户，只能劝阻模型别输出
+            note = str(self.cfg("stream_no_marker_rule", "") or STREAM_NO_MARKER_RULE)
+            try:
+                if note.strip() and note.strip() not in (req.system_prompt or ""):
+                    req.system_prompt = (req.system_prompt or "") + note
+            except Exception:
+                logger.debug("颜文字：流式反标记规则注入失败", exc_info=True)
+            return
         if mode != "marker":
             return
         rule = str(self.cfg("rule_text", "") or self._build_marker_rule())
@@ -430,11 +446,29 @@ class KaomojiPlugin(Star):
         if result is None or not result.chain:
             return
 
+        plains = [c for c in result.chain if isinstance(c, Plain) and c.text]
+        if not plains:
+            return
+
         # 流式结束：文本已经发出去了，改成单独补一条颜文字消息
         ct = getattr(result, "result_content_type", None)
+        mode = self._mode_for(event)
         if getattr(ct, "name", "") == "STREAMING_FINISH":
-            if self._mode_for(event) == "stream":
+            if mode == "stream":
                 await self._stream_followup(event, result)
+            return
+
+        # 流式模式下的非流式结果（主动消息等）仍可安全替换，避免标记漏出去
+        if mode == "stream":
+            for comp in plains:
+                if self.index.extract_tags(comp.text):
+                    try:
+                        new = await self._transform_text(event, comp.text)
+                    except Exception:
+                        logger.error("颜文字：流式模式清理标记失败", exc_info=True)
+                        new = self.index.strip_our_tags(comp.text)
+                    if new != comp.text:
+                        comp.text = new
             return
 
         # 只装饰 LLM 的回复，不碰指令/工具输出
@@ -444,11 +478,6 @@ class KaomojiPlugin(Star):
         except Exception:
             pass
 
-        plains = [c for c in result.chain if isinstance(c, Plain) and c.text]
-        if not plains:
-            return
-
-        mode = self._mode_for(event)
         if mode == "off":
             return
 

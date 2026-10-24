@@ -14,7 +14,7 @@ desc: |
   - 数据存放在 `data/plugin_data/astrbot_plugin_kaomoji/`，首次运行自动初始化
 
   命令：`/kaomoji` 查看全部子命令。
-version: 0.6.2
+version: 0.6.3
 author: kujochisaki3378
 repo: https://github.com/kujochisaki3378/astrbot_plugin_kaomoji
 astrbot_version: ">=4.28.0"
